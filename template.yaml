@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  albums-api
+
+  Sample SAM Template for albums-api
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: python3.9
+    Architectures:
+        - x86_64
+
+    Environment:
+      Variables:
+        ALBUMS_TABLE: !Ref AlbumTable
+ 
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
+      AllowCredentials: "'*'"      
+
+Resources:
+  AlbumTable:
+  
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "AlbumId"
+          AttributeType: "N"
+        -
+          AttributeName: "AlbumName"
+          AttributeType: "S"
+    
+    
+
+
+  
+  CreateAlbumFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: albums-api/
+      Handler:  create.create
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AlbumTable
+      Events:
+        CreateAlbums:
+          Type: Api
+          Properties:
+            Path: /albums
+            Method: POST
+    
+  ReadAlbumFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: albums-api/
+      Handler:  read.read
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AlbumTable
+      Events:
+        ReadAlbums:
+          Type: Api
+          Properties:
+            Path: /albums
+            Method: GET
+  ReadAlbumByIDFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: albums-api/
+      Handler:  readById.read
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AlbumTable
+      Events:
+        ReadAlbums:
+          Type: Api
+          Properties:
+            Path: /albums/{id}
+            Method: GET          
+  DeleteAlbumFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: albums-api/
+      Handler:  delete.delete
+      Events:
+        ReadAlbums:
+          Type: Api
+          Properties:
+            Path: /albums/{id}
+            Method: DELETE     
+  UpdateAlbumFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: albums-api/
+      Handler:  update.update
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AlbumTable
+      Events:
+        ReadAlbums:
+          Type: Api
+          Properties:
+            Path: /albums/{id}
+            Method: Patch                 
+            
+            
+ 
+
+
